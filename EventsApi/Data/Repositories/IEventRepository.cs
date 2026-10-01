@@ -9,5 +9,4 @@ public interface IEventRepository
     Event Add(Event model);
     bool Update(int id, Event model);
     bool Delete(int id);
-    bool ExistsById(int id);
 }

@@ -9,7 +9,10 @@ public partial class EventMapper
 {
     public partial EventDto ToDto(Event model);
 
-    public partial Event SaveDtoToModel(EventSaveDto saveDto);
-    public partial void SaveDtoToModel(EventSaveDto saveDto, Event model);
+    [MapperIgnoreTarget(nameof(Event.Id))]
+    public partial Event SaveDtoToModel(EventSaveDto? saveDto);
+
+    [MapperIgnoreTarget(nameof(Event.Id))]
+    public partial void SaveDtoToModel(EventSaveDto? saveDto, Event model);
     
 }

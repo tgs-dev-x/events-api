@@ -2,5 +2,5 @@
 
 public interface IModelValidator
 {
-    ValidationErrors Validate(object model);
+    ValidationErrors Validate(object? model);
 }

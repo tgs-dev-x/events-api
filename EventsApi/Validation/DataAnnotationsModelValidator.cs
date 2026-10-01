@@ -4,16 +4,19 @@ namespace EventsApi.Validation;
 
 public class DataAnnotationsModelValidator : IModelValidator
 {
-    public ValidationErrors Validate(object model)
+    public ValidationErrors Validate(object? model)
     {
-        ArgumentNullException.ThrowIfNull(model);
+        var errors = new ValidationErrors();
+        if (model is null)
+        {
+            errors.AddError(string.Empty, "Тело запроса обязательно и должно быть корректным JSON");
+            return errors;
+        }
 
         List<ValidationResult> results = new();
         var context = new ValidationContext(model);
 
         Validator.TryValidateObject(model, context, results, true);
-
-        var errors = new ValidationErrors();
 
         foreach (ValidationResult result in results)
         {

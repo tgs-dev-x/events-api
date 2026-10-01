@@ -12,17 +12,15 @@ public class EventService : IEventService
     private readonly EventMapper _eventMapper;
     private readonly IEventRepository _eventRepository;
     private readonly IModelValidator _modelValidator;
-    private readonly ILogger<EventService> _logger;
 
-    public EventService(EventMapper eventMapper, IEventRepository eventRepository, IModelValidator modelValidator, ILogger<EventService> logger)
+    public EventService(EventMapper eventMapper, IEventRepository eventRepository, IModelValidator modelValidator)
     {
         _eventMapper = eventMapper;
         _eventRepository = eventRepository;
         _modelValidator = modelValidator;
-        _logger = logger;
     }
 
-    public EventDto Create(EventSaveDto saveDto)
+    public EventDto Create(EventSaveDto? saveDto)
     {
         ValidateSaveDtoOrThrow(saveDto);
 
@@ -49,12 +47,12 @@ public class EventService : IEventService
     {
         var model = _eventRepository.FindById(id);
 
-        if (model == null)
+        if (model is null)
             throw new NotFoundException(nameof(Event), id);
         return _eventMapper.ToDto(model);
     }
 
-    public void Update(int id, EventSaveDto saveDto)
+    public void Update(int id, EventSaveDto? saveDto)
     {
         ValidateSaveDtoOrThrow(saveDto);
 
@@ -65,12 +63,12 @@ public class EventService : IEventService
         _eventRepository.Update(id, model);
     }
 
-    private void ValidateSaveDtoOrThrow(EventSaveDto saveDto)
+    private void ValidateSaveDtoOrThrow(EventSaveDto? saveDto)
     {
         var errors = _modelValidator.Validate(saveDto);
 
-        if (saveDto.EndAt <= saveDto.StartAt)
-            errors.AddError(nameof(saveDto.EndAt), $"{nameof(saveDto.EndAt)} должен быть позже {nameof(saveDto.StartAt)}");
+        if (saveDto is not null && saveDto.EndAt <= saveDto.StartAt)
+            errors.AddError(nameof(EventSaveDto.EndAt), $"{nameof(EventSaveDto.EndAt)} должен быть позже {nameof(EventSaveDto.StartAt)}");
 
         if (errors.HasErrors)
             throw new DataValidationException(errors);

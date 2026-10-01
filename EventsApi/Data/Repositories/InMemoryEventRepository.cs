@@ -22,11 +22,6 @@ public class InMemoryEventRepository : IEventRepository
         return _store.TryRemove(id, out _);
     }
 
-    public bool ExistsById(int id)
-    {
-        return _store.ContainsKey(id);
-    }
-
     public Event? FindById(int id)
     {
         return _store.TryGetValue(id, out var foundEvent) ? foundEvent : null;
