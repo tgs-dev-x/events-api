@@ -1,7 +1,13 @@
-﻿namespace EventsApi.Services;
+﻿using EventsApi.Dtos;
+
+namespace EventsApi.Services;
 
 public interface IEventService
 {
-    void GetAll();
-    void GetById(int Id);
+    List<EventDto> GetAll();
+    EventDto GetById(int id);
+    EventDto Create(EventSaveDto saveDto);
+    void Update(int id, EventSaveDto saveDto);
+    void Delete(int id);
+
 }

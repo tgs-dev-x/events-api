@@ -3,9 +3,15 @@ using EventsApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddApiVersioningWithOpenApi();
-builder.Services.AddMappers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    });
+
+builder.Services.AddOpenApi();
+builder.Services.AddApplicationService();
+builder.Services.AddModelValidation();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -25,8 +31,8 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApiWithVersions();
-    app.UseSwaggerUiWithVersions();
+    app.MapOpenApi();
+    app.UseSwaggerUi();
 }
 
 app.UseHttpsRedirection();

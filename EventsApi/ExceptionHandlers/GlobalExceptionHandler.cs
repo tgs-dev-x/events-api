@@ -1,31 +1,32 @@
 ﻿using EventsApi.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mime;
 
 namespace EventsApi.ExceptionHandlers;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
-    private readonly IProblemDetailsService _problemDetailsService;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IProblemDetailsService problemDetailsService)
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     {
         _logger = logger;
-        _problemDetailsService = problemDetailsService;
     }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var problem = MapExceptionToProblem(httpContext, exception);
-
         LogException(httpContext, exception);
 
-        return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            ProblemDetails = problem,
-        });
+        if (httpContext.Response.HasStarted)
+            return true;
+
+        httpContext.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
+        httpContext.Response.ContentType = MediaTypeNames.Application.ProblemJson;
+        await httpContext.Response.WriteAsJsonAsync(problem, problem.GetType(), cancellationToken);
+
+        return true;
     }
 
     private ProblemDetails MapExceptionToProblem(HttpContext context, Exception exception)
@@ -35,20 +36,14 @@ public class GlobalExceptionHandler : IExceptionHandler
 
             AppException appEx => BuildProblem(context,
                 (int)appEx.StatusCode,
-                GetProblemTitle(appEx),
+                appEx.Title,
                 appEx.Message),
 
             _ => BuildProblem(context,
                 StatusCodes.Status500InternalServerError,
                 "Внутренняя ошибка сервера",
-                "Внутренняя ошибка сервера")
+                "Произошла непредвиденная ошибка. Пожалуйста, обратитесь в поддержку")
         };
-
-    private string GetProblemTitle(AppException exception) => exception switch
-    {
-        NotFoundException => "Ресурс не найден",
-        _ => "Внутренняя ошибка сервера"
-    };
 
     private ProblemDetails BuildProblem(
         HttpContext context, int statusCode, string title, string detail)
@@ -65,7 +60,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         => new(exception.Errors)
         {
             Status = StatusCodes.Status400BadRequest,
-            Title = "Ошибка валидации",
+            Title = exception.Title,
             Detail = exception.Message,
             Instance = context.Request.Path
         };

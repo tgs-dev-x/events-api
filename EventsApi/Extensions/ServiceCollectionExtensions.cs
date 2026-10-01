@@ -1,32 +1,23 @@
-﻿using Asp.Versioning;
+﻿using EventsApi.Data.Repositories;
 using EventsApi.Mappers;
+using EventsApi.Services;
+using EventsApi.Validation;
 
 namespace EventsApi.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApiVersioningWithOpenApi(this IServiceCollection services)
+    public static IServiceCollection AddApplicationService(this IServiceCollection services)
     {
-        services.AddApiVersioning(options =>
-        {
-            options.DefaultApiVersion = new ApiVersion(1, 0);
-            options.ReportApiVersions = true;
-            options.AssumeDefaultVersionWhenUnspecified = true;
-            options.ApiVersionReader = new UrlSegmentApiVersionReader();
-        })
-        .AddApiExplorer(options =>
-        {
-            options.GroupNameFormat = "'v'VVV";
-            options.SubstituteApiVersionInUrl = true;
-        })
-        .AddOpenApi();
-
+        services.AddSingleton<EventMapper>();
+        services.AddSingleton<IEventRepository, InMemoryEventRepository>();
+        services.AddScoped<IEventService, EventService>();
         return services;
     }
 
-    public static IServiceCollection AddMappers(this IServiceCollection services)
+    public static IServiceCollection AddModelValidation(this IServiceCollection services)
     {
-        services.AddSingleton<EventMapper>();
+        services.AddScoped<IModelValidator, DataAnnotationsModelValidator>();
         return services;
     }
 }

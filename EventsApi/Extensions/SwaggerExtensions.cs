@@ -2,22 +2,11 @@
 
 public static class SwaggerExtensions
 {
-    public static WebApplication MapOpenApiWithVersions(this WebApplication app)
-    {
-        app.MapOpenApi().WithDocumentPerVersion();
-        return app;
-    }
-
-    public static WebApplication UseSwaggerUiWithVersions(this WebApplication app)
+    public static WebApplication UseSwaggerUi(this WebApplication app)
     {
         app.UseSwaggerUI(options =>
         {
-            foreach (var description in app.DescribeApiVersions().Reverse())
-            {
-                options.SwaggerEndpoint(
-                    $"/openapi/{description.GroupName}.json",
-                    description.GroupName.ToUpperInvariant());
-            }
+            options.SwaggerEndpoint("/openapi/v1.json", "Events API");
         });
         return app;
     }
