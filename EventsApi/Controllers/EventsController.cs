@@ -7,6 +7,7 @@ namespace EventsApi.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Tags("Мероприятия")]
+[Produces("application/json")]
 public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;

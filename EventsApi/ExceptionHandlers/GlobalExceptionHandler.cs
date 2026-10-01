@@ -1,17 +1,18 @@
 ﻿using EventsApi.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mime;
 
 namespace EventsApi.ExceptionHandlers;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
+    private readonly IProblemDetailsService _problemDetailsService;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IProblemDetailsService problemDetailsService)
     {
         _logger = logger;
+        _problemDetailsService = problemDetailsService;
     }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -23,10 +24,11 @@ public class GlobalExceptionHandler : IExceptionHandler
             return true;
 
         httpContext.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
-        httpContext.Response.ContentType = MediaTypeNames.Application.ProblemJson;
-        await httpContext.Response.WriteAsJsonAsync(problem, problem.GetType(), cancellationToken);
-
-        return true;
+        return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = httpContext,
+            ProblemDetails = problem
+        });
     }
 
     private ProblemDetails MapExceptionToProblem(HttpContext context, Exception exception)
