@@ -1,14 +1,15 @@
 ﻿namespace EventsApi.Extensions;
 
-public static class WebApplicationExtensions
+public static class SwaggerExtensions
 {
-    public static WebApplication UseSwaggerWithVersions(this WebApplication app)
+    public static WebApplication MapOpenApiWithVersions(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
-            return app;
-
         app.MapOpenApi().WithDocumentPerVersion();
+        return app;
+    }
 
+    public static WebApplication UseSwaggerUiWithVersions(this WebApplication app)
+    {
         app.UseSwaggerUI(options =>
         {
             foreach (var description in app.DescribeApiVersions().Reverse())
@@ -18,7 +19,6 @@ public static class WebApplicationExtensions
                     description.GroupName.ToUpperInvariant());
             }
         });
-
         return app;
     }
 }

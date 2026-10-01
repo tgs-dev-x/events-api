@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using EventsApi.Mappers;
 
 namespace EventsApi.Extensions;
 
@@ -20,6 +21,12 @@ public static class ServiceCollectionExtensions
         })
         .AddOpenApi();
 
+        return services;
+    }
+
+    public static IServiceCollection AddMappers(this IServiceCollection services)
+    {
+        services.AddSingleton<EventMapper>();
         return services;
     }
 }
