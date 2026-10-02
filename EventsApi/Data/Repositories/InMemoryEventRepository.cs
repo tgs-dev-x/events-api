@@ -24,13 +24,14 @@ public class InMemoryEventRepository : IEventRepository
 
     public Event? FindById(int id)
     {
-        return _store.TryGetValue(id, out var foundEvent) ? foundEvent : null;
+        return _store.TryGetValue(id, out var foundEvent) ? foundEvent.Clone() : null;
     }
 
     public IEnumerable<Event> GetAll()
     {
         return _store.Values
-            .OrderBy(e => e.StartAt);
+            .OrderBy(e => e.StartAt)
+            .Select(e => e.Clone());
     }
 
     public void Update(int id, Event model)
