@@ -4,9 +4,10 @@ namespace EventsApi.Dtos;
 
 public record EventSaveDto
 {
-    [Required(ErrorMessage = "Title обязателен")]
+    [Required(ErrorMessage = "Title обязателен"), MaxLength(100, ErrorMessage = "Title не должен превышать 100 символов")]
     public string? Title { get; init; }
 
+    [MaxLength(100, ErrorMessage = "Description не должен превышать 100 символов")]
     public string? Description { get; init; }
 
     [Required(ErrorMessage = "StartAt обязателен")]

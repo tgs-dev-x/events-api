@@ -29,16 +29,16 @@ public class InMemoryEventRepository : IEventRepository
 
     public IEnumerable<Event> GetAll()
     {
-        return _store.Values;
+        return _store.Values
+            .OrderBy(e => e.StartAt);
     }
 
-    public bool Update(int id, Event model)
+    public void Update(int id, Event model)
     {
         if (!_store.ContainsKey(id))
-            return false;
+            return;
 
         model.Id = id;
         _store[id] = model;
-        return true;
     }
 }

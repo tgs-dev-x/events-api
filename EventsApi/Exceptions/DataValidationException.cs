@@ -18,7 +18,4 @@ public sealed class DataValidationException : AppException
 
     public DataValidationException(ValidationErrors errors)
         : this(DefaultMessage, errors) { }
-
-    public DataValidationException(string message)
-        : this(message, new ValidationErrors()) { }
 }
