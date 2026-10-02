@@ -8,12 +8,5 @@ public class Event
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
 
-    public Event Clone() => new()
-    {
-        Id = Id,
-        Title = Title,
-        Description = Description,
-        StartAt = StartAt,
-        EndAt = EndAt
-    };
+    public Event Clone() => (Event) MemberwiseClone();
 }

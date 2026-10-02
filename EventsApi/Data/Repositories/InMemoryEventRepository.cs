@@ -9,12 +9,13 @@ public class InMemoryEventRepository : IEventRepository
     private int _lastId = 0;
     public Event Add(Event model)
     {
+        var stored = model.Clone();
         int newId = Interlocked.Increment(ref _lastId);
 
-        model.Id = newId;
-        _store.TryAdd(newId, model);
+        stored.Id = newId;
+        _store.TryAdd(newId, stored);
 
-        return model;
+        return stored.Clone();
     }
 
     public bool Delete(int id)
@@ -31,15 +32,16 @@ public class InMemoryEventRepository : IEventRepository
     {
         return _store.Values
             .OrderBy(e => e.StartAt)
-            .Select(e => e.Clone());
+            .Select(e => e.Clone())
+            .ToList();
     }
 
     public void Update(int id, Event model)
     {
-        if (!_store.ContainsKey(id))
-            return;
+        var stored = model.Clone();
+        stored.Id = id;
 
-        model.Id = id;
-        _store[id] = model;
+        if (_store.TryGetValue(id, out var current))
+            _store.TryUpdate(id, stored, current);
     }
 }
