@@ -17,9 +17,9 @@ REST API для управления мероприятиями на ASP.NET Cor
 
 ```bash
 git clone https://github.com/tgs-dev-x/events-api.git
-cd events-api/EventsApi
+cd events-api
 dotnet build
-dotnet run
+dotnet run --project EventsApi
 ```
 
 После запуска Swagger UI доступен по адресу:
