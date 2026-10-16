@@ -4,7 +4,6 @@ using EventsApi.Dtos;
 using EventsApi.Filtering;
 using EventsApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace EventsApi.Controllers;
 
@@ -27,7 +26,7 @@ public class EventsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public ActionResult<EventDto> Create([FromBody] [ValidateNever] EventSaveDto saveDto)
+    public ActionResult<EventDto> Create([FromBody] EventSaveDto saveDto)
     {
         var created = _eventService.Create(saveDto);
 
@@ -55,7 +54,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public IActionResult Update(int id, [FromBody] [ValidateNever] EventSaveDto saveDto)
+    public IActionResult Update(int id, [FromBody] EventSaveDto saveDto)
     {
         _eventService.Update(id, saveDto);
         return NoContent();
