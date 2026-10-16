@@ -1,3 +1,8 @@
 ﻿namespace EventsApi.Filtering;
 
-public record EventSearchCriteria(string? Title, DateTime? From, DateTime? To);
+public record EventSearchCriteria
+{
+    public string? Title { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
+}

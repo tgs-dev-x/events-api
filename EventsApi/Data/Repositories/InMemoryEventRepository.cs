@@ -61,11 +61,8 @@ public class InMemoryEventRepository : IEventRepository
 
     private IEnumerable<Event> ApplySearchCriteria(IEnumerable<Event> source, EventSearchCriteria criteria)
     {
-        if (criteria == null)
-            return source;
-
         IEnumerable<Event> result = source;
-        if (!string.IsNullOrEmpty(criteria.Title))
+        if (!string.IsNullOrWhiteSpace(criteria.Title))
             result = result.Where(e =>
                 e.Title.Contains(criteria.Title, StringComparison.OrdinalIgnoreCase));
 
@@ -102,7 +99,7 @@ public class InMemoryEventRepository : IEventRepository
 
         }
 
-        return ordered!;
+        return ordered!.ThenBy(e => e.Id);
     }
 
     private Func<Event, IComparable> GetSortKeySelector(EventSortField field) => field switch
