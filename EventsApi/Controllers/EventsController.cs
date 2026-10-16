@@ -76,6 +76,7 @@ public class EventsController : ControllerBase
     /// Получить список мероприятий с фильтрацией, сортировкой и пагинацией.
     /// Пагинация: page (>=1, default 1), pageSize (1..100, default 10).
     /// </summary>
+    /// <param name="criteria">Критерии фильтрации: title, from, to.</param>
     /// <param name="sort">
     /// Сортировка. Формат: <c>field:direction</c>.
     /// Допустимые поля: <c>Title</c>, <c>StartAt</c>, <c>EndAt</c>.
@@ -83,6 +84,7 @@ public class EventsController : ControllerBase
     /// Можно передавать несколько раз: <c>?sort=Title:asc&amp;sort=StartAt:desc</c>.
     /// Если не указано — сортировка по StartAt asc.
     /// </param>
+    /// <param name="pageParameters">Параметры пагинации: page, pageSize.</param>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
