@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventsApi.Dtos;
 
+[ValidateNever]
 public record EventSaveDto
 {
     [Required(ErrorMessage = "Title обязателен"), MaxLength(100, ErrorMessage = "Title не должен превышать 100 символов")]
