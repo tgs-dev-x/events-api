@@ -39,7 +39,7 @@ public class EventService : IEventService
             throw new NotFoundException(nameof(Event), id);
     }
 
-    public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria, 
+    public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria,
         IReadOnlyList<SortOrder<EventSortField>> sorts,
         PageParameters pageParameters)
     {
@@ -71,7 +71,7 @@ public class EventService : IEventService
     {
         ValidateSaveDtoOrThrow(saveDto);
 
-        var model = _eventRepository.FindById(id) 
+        var model = _eventRepository.FindById(id)
             ?? throw new NotFoundException(nameof(Event), id);
 
         _eventMapper.SaveDtoToModel(saveDto, model);

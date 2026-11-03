@@ -8,5 +8,5 @@ public class Event
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
 
-    public Event Clone() => (Event) MemberwiseClone();
+    public Event Clone() => (Event)MemberwiseClone();
 }

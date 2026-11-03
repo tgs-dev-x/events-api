@@ -13,7 +13,7 @@ namespace EventsApi.Tests.Services;
 
 public class EventServiceTests
 {
-    private static readonly Guid DefaultGuid = new ("11111111-2222-3333-4444-555555555555");
+    private static readonly Guid DefaultGuid = new("11111111-2222-3333-4444-555555555555");
     private static readonly DateTime DefaultStart = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime DefaultEnd = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 

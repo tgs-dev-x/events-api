@@ -7,8 +7,8 @@ namespace EventsApi.Services;
 
 public interface IEventService
 {
-    PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria, 
-        IReadOnlyList<SortOrder<EventSortField>> sorts, 
+    PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria,
+        IReadOnlyList<SortOrder<EventSortField>> sorts,
         PageParameters pageParameters);
     EventDto GetById(Guid id);
     EventDto Create(EventSaveDto? saveDto);
