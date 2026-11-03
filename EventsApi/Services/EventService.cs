@@ -1,6 +1,9 @@
-﻿using EventsApi.Data.Repositories;
+﻿using EventsApi.Common.Pagination;
+using EventsApi.Common.Sorting;
+using EventsApi.Data.Repositories;
 using EventsApi.Dtos;
 using EventsApi.Exceptions;
+using EventsApi.Filtering;
 using EventsApi.Mappers;
 using EventsApi.Models;
 using EventsApi.Validation;
@@ -36,11 +39,23 @@ public class EventService : IEventService
             throw new NotFoundException(nameof(Event), id);
     }
 
-    public List<EventDto> GetAll()
+    public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria, 
+        IReadOnlyList<SortOrder<EventSortField>> sorts,
+        PageParameters pageParameters)
     {
-        return _eventRepository.GetAll()
-            .Select(_eventMapper.ToDto)
+        var pagedResult = _eventRepository.FindByFilter(criteria, sorts, pageParameters);
+
+        var items = pagedResult.Items;
+        var dtos = items.Select(_eventMapper.ToDto)
             .ToList();
+
+        return new PaginatedResult<EventDto>
+        {
+            Items = dtos,
+            Page = pagedResult.Page,
+            PageSize = pagedResult.PageSize,
+            TotalCount = pagedResult.TotalCount
+        };
     }
 
     public EventDto GetById(int id)

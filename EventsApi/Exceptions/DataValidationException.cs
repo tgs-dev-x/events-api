@@ -18,4 +18,10 @@ public sealed class DataValidationException : AppException
 
     public DataValidationException(ValidationErrors errors)
         : this(DefaultMessage, errors) { }
+
+    public DataValidationException(string message) 
+        : base(DefaultTitle, message, HttpStatusCode.BadRequest) 
+    {
+        Errors = new Dictionary<string, string[]>();
+    }
 }
