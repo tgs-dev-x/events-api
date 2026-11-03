@@ -1,4 +1,5 @@
-﻿using EventsApi.Data.Repositories;
+﻿using EventsApi.BackgroundServices;
+using EventsApi.Data.Repositories;
 using EventsApi.Mappers;
 using EventsApi.Services;
 using EventsApi.Validation;
@@ -9,6 +10,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationService(this IServiceCollection services)
     {
+        services.AddHostedService<BookingProcessingBackgroundService>();
+
         services.AddSingleton<EventMapper>();
         services.AddSingleton<BookingMapper>();
 
