@@ -14,12 +14,18 @@ public class Booking
 
     public void Confirm(DateTime now)
     {
+        if (Status != BookingStatus.Pending)
+            throw new InvalidOperationException($"Нельзя подтвердить бронь в статусе {Status}");
+
         Status = BookingStatus.Confirmed;
         ProcessedAt = now;
     }
 
     public void Reject(DateTime now)
     {
+        if (Status != BookingStatus.Pending)
+            throw new InvalidOperationException($"Нельзя отклонить бронь в статусе {Status}");
+
         Status = BookingStatus.Rejected;
         ProcessedAt = now;
     }
