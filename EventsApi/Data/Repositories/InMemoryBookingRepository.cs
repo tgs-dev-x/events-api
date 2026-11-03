@@ -11,11 +11,9 @@ public class InMemoryBookingRepository : IBookingRepository
     public Booking Add(Booking model)
     {
         var stored = model.Clone();
-        var newId = Guid.NewGuid();
 
-        stored.Id = newId;
-        if (!_store.TryAdd(newId, stored))
-            throw new InvalidOperationException($"Не удалось добавить бронь {newId}");
+        if (!_store.TryAdd(stored.Id, stored))
+            throw new InvalidOperationException($"Не удалось добавить бронь {stored.Id}");
 
         return stored.Clone();
     }

@@ -26,6 +26,7 @@ public class Booking
 
     public static Booking CreatePending(Guid eventId, DateTime now) => new()
     {
+        Id = Guid.NewGuid(),
         EventId = eventId,
         Status = BookingStatus.Pending,
         CreatedAt = now,
