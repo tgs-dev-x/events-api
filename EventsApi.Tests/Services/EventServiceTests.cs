@@ -13,6 +13,7 @@ namespace EventsApi.Tests.Services;
 
 public class EventServiceTests
 {
+    private static readonly Guid DefaultGuid = new ("11111111-2222-3333-4444-555555555555");
     private static readonly DateTime DefaultStart = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime DefaultEnd = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
@@ -21,7 +22,7 @@ public class EventServiceTests
 
     public EventServiceTests()
     {
-        _service = new EventService(new EventMapper(), 
+        _service = new EventService(new EventMapper(),
             _repository,
             new DataAnnotationsModelValidator());
     }
@@ -34,7 +35,7 @@ public class EventServiceTests
 
         var result = _service.Create(GetValidDto());
 
-        result.Id.Should().Be(1);
+        result.Id.Should().Be(DefaultGuid);
         result.Title.Should().Be("Концерт");
         _repository.Received(1).Add(Arg.Any<Event>());
     }
@@ -96,8 +97,8 @@ public class EventServiceTests
     [Fact]
     public void GetById_ExistingById_ReturnsMappedDto()
     {
-        var existingId = 1;
-        _repository.FindById(1)
+        var existingId = Guid.NewGuid();
+        _repository.FindById(existingId)
             .Returns(GetStoredEvent(id: existingId, title: "X"));
 
         var result = _service.GetById(existingId);
@@ -109,7 +110,7 @@ public class EventServiceTests
     [Fact]
     public void GetById_NonExistingById_ThrowsNotFoundEx()
     {
-        var notExistingId = 999;
+        var notExistingId = Guid.NewGuid();
 
         _repository.FindById(notExistingId)
             .Returns((Event?)null);
@@ -121,9 +122,9 @@ public class EventServiceTests
     [Fact]
     public void Update_ExistingById_CallsRepositoryUpdate()
     {
-        var existingId = 1;
+        var existingId = Guid.NewGuid();
         var newTitle = "New";
-        _repository.FindById(1).Returns(GetStoredEvent(id: existingId, title: "Old"));
+        _repository.FindById(existingId).Returns(GetStoredEvent(id: existingId, title: "Old"));
 
         _service.Update(existingId, GetValidDto(newTitle));
 
@@ -133,14 +134,14 @@ public class EventServiceTests
     [Fact]
     public void Update_NonExistingById_ThrowsNotFoundExAndDoesntCallUpdate()
     {
-        var notExistingId = 999;
+        var notExistingId = Guid.NewGuid();
         _repository.FindById(notExistingId)
             .Returns((Event?)null);
 
         var act = () => _service.Update(notExistingId, GetValidDto());
 
         act.Should().Throw<NotFoundException>();
-        _repository.DidNotReceive().Update(Arg.Any<int>(), Arg.Any<Event>());
+        _repository.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<Event>());
     }
 
     [Fact]
@@ -153,10 +154,10 @@ public class EventServiceTests
             EndAt = DefaultStart
         };
 
-        var act = () => _service.Update(1, dto);
+        var act = () => _service.Update(DefaultGuid, dto);
 
         act.Should().Throw<DataValidationException>();
-        _repository.DidNotReceive().Update(Arg.Any<int>(), Arg.Any<Event>());
+        _repository.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<Event>());
     }
 
     [Fact]
@@ -169,7 +170,7 @@ public class EventServiceTests
             EndAt = DefaultStart
         };
 
-        var act = () => _service.Update(1, dto);
+        var act = () => _service.Update(DefaultGuid, dto);
 
         act.Should().Throw<DataValidationException>();
     }
@@ -177,7 +178,7 @@ public class EventServiceTests
     [Fact]
     public void Delete_NonExistingById_ThrowsNotFoundEx()
     {
-        var notExistingId = 999;
+        var notExistingId = Guid.NewGuid();
         _repository.Delete(notExistingId).Returns(false);
 
         var act = () => _service.Delete(notExistingId);
@@ -188,7 +189,7 @@ public class EventServiceTests
     [Fact]
     public void Delete_ExistingById_CallsRepositoryDelete()
     {
-        var existingId = 1;
+        var existingId = Guid.NewGuid();
         _repository.Delete(existingId).Returns(true);
 
         var act = () => _service.Delete(existingId);
@@ -200,7 +201,7 @@ public class EventServiceTests
     [Fact]
     public void GetByFilter_MapsRepositoryResultToDto()
     {
-        var storedId = 1;
+        var storedId = Guid.NewGuid();
         var storedTitle = "X";
 
         _repository
@@ -262,12 +263,12 @@ public class EventServiceTests
     };
 
     private static Event GetStoredEvent(
-        int id = 1,
+        Guid? id = null,
         string title = "Концерт",
         DateTime? startAt = null,
         DateTime? endAt = null) => new()
         {
-            Id = id,
+            Id = id ?? DefaultGuid,
             Title = title,
             StartAt = startAt ?? DefaultStart,
             EndAt = endAt ?? DefaultEnd

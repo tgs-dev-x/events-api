@@ -14,15 +14,14 @@ public class InMemoryEventRepositoryTests
     private readonly InMemoryEventRepository _repository = new();
 
     [Fact]
-    public void Add_AssignsIncrementalId()
+    public void Add_AssignsUniqueNonEmptyId()
     {
         var first = SeedDefault("A");
         var second = SeedDefault("B");
-        var third = SeedDefault("C");
 
-        first.Id.Should().Be(1);
-        second.Id.Should().Be(2);
-        third.Id.Should().Be(3);
+        first.Id.Should().NotBe(Guid.Empty);
+        second.Id.Should().NotBe(Guid.Empty);
+        first.Id.Should().NotBe(second.Id);
     }
 
     [Fact]
@@ -40,7 +39,7 @@ public class InMemoryEventRepositoryTests
     [Fact]
     public void FindById_NonExistingById_ReturnsNull()
     {
-        var result = _repository.FindById(999);
+        var result = _repository.FindById(Guid.NewGuid());
 
         result.Should().BeNull();
     }
@@ -59,7 +58,7 @@ public class InMemoryEventRepositoryTests
     [Fact]
     public void Delete_NonExistingById_ReturnsFalse()
     {
-        var result = _repository.Delete(999);
+        var result = _repository.Delete(Guid.NewGuid());
 
         result.Should().BeFalse();
     }
@@ -92,7 +91,7 @@ public class InMemoryEventRepositoryTests
 
         _repository.Update(stored.Id, new Event
         {
-            Id = 999,
+            Id = Guid.NewGuid(),
             Title = "New",
             StartAt = DefaultStart,
             EndAt = DefaultEnd
@@ -105,7 +104,7 @@ public class InMemoryEventRepositoryTests
     [Fact]
     public void Update_NonExistingById_DoesNothing()
     {
-        var notExistingId = 999;
+        var notExistingId = Guid.NewGuid();
         var act = () => _repository.Update(notExistingId, new Event
         {
             Title = "X",

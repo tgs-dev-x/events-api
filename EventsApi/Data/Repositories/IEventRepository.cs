@@ -11,8 +11,8 @@ public interface IEventRepository
         EventSearchCriteria criteria,
         IReadOnlyList<SortOrder<EventSortField>> sorts,
         PageParameters pageParameters);
-    Event? FindById(int id);
+    Event? FindById(Guid id);
     Event Add(Event model);
-    void Update(int id, Event model);
-    bool Delete(int id);
+    void Update(Guid id, Event model);
+    bool Delete(Guid id);
 }
