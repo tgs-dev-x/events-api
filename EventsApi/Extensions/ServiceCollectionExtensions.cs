@@ -10,7 +10,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationService(this IServiceCollection services)
     {
         services.AddSingleton<EventMapper>();
+        services.AddSingleton<BookingMapper>();
+
         services.AddSingleton<IEventRepository, InMemoryEventRepository>();
+        services.AddSingleton<IBookingRepository, InMemoryBookingRepository>();
+
+        services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IEventService, EventService>();
         return services;
     }
