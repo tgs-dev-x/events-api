@@ -6,7 +6,7 @@ public sealed class NotFoundException : AppException
 {
     private const string DefaultTitle = "Ресурс не найден";
 
-    public NotFoundException(string message) 
+    public NotFoundException(string message)
         : base(DefaultTitle, message, HttpStatusCode.NotFound)
     {
     }

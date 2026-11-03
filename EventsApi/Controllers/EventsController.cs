@@ -39,10 +39,10 @@ public class EventsController : ControllerBase
     /// <summary>
     /// Получить мероприятие по идентификатору
     /// </summary>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public ActionResult<EventDto> GetById(int id)
+    public ActionResult<EventDto> GetById(Guid id)
     {
         return Ok(_eventService.GetById(id));
     }
@@ -50,11 +50,11 @@ public class EventsController : ControllerBase
     /// <summary>
     /// Обновить мероприятие
     /// </summary>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public IActionResult Update(int id, [FromBody] EventSaveDto saveDto)
+    public IActionResult Update(Guid id, [FromBody] EventSaveDto saveDto)
     {
         _eventService.Update(id, saveDto);
         return NoContent();
@@ -63,10 +63,10 @@ public class EventsController : ControllerBase
     /// <summary>
     /// Удалить мероприятие
     /// </summary>
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public IActionResult Delete(int id)
+    public IActionResult Delete(Guid id)
     {
         _eventService.Delete(id);
         return NoContent();
