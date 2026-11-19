@@ -14,5 +14,5 @@ public partial class EventMapper
 
     [MapperIgnoreTarget(nameof(Event.Id))]
     public partial void SaveDtoToModel(EventSaveDto? saveDto, Event model);
-    
+
 }

@@ -8,13 +8,12 @@ namespace EventsApi.Data.Repositories;
 
 public class InMemoryEventRepository : IEventRepository
 {
-    private readonly ConcurrentDictionary<int, Event> _store = new();
-    private int _lastId = 0;
+    private readonly ConcurrentDictionary<Guid, Event> _store = new();
 
     public Event Add(Event model)
     {
         var stored = model.Clone();
-        int newId = Interlocked.Increment(ref _lastId);
+        var newId = Guid.NewGuid();
 
         stored.Id = newId;
         _store.TryAdd(newId, stored);
@@ -22,12 +21,12 @@ public class InMemoryEventRepository : IEventRepository
         return stored.Clone();
     }
 
-    public bool Delete(int id)
+    public bool Delete(Guid id)
     {
         return _store.TryRemove(id, out _);
     }
 
-    public Event? FindById(int id)
+    public Event? FindById(Guid id)
     {
         return _store.TryGetValue(id, out var foundEvent) ? foundEvent.Clone() : null;
     }
@@ -117,7 +116,7 @@ public class InMemoryEventRepository : IEventRepository
             .Take(pageParameters.GetNormalizedPageSize());
     }
 
-    public void Update(int id, Event model)
+    public void Update(Guid id, Event model)
     {
         var stored = model.Clone();
         stored.Id = id;

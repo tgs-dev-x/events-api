@@ -33,13 +33,13 @@ public class EventService : IEventService
         return _eventMapper.ToDto(savedModel);
     }
 
-    public void Delete(int id)
+    public void Delete(Guid id)
     {
         if (!_eventRepository.Delete(id))
             throw new NotFoundException(nameof(Event), id);
     }
 
-    public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria, 
+    public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria,
         IReadOnlyList<SortOrder<EventSortField>> sorts,
         PageParameters pageParameters)
     {
@@ -58,7 +58,7 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto GetById(int id)
+    public EventDto GetById(Guid id)
     {
         var model = _eventRepository.FindById(id);
 
@@ -67,11 +67,11 @@ public class EventService : IEventService
         return _eventMapper.ToDto(model);
     }
 
-    public void Update(int id, EventSaveDto? saveDto)
+    public void Update(Guid id, EventSaveDto? saveDto)
     {
         ValidateSaveDtoOrThrow(saveDto);
 
-        var model = _eventRepository.FindById(id) 
+        var model = _eventRepository.FindById(id)
             ?? throw new NotFoundException(nameof(Event), id);
 
         _eventMapper.SaveDtoToModel(saveDto, model);

@@ -9,7 +9,7 @@ public class ValidationErrors
     {
         if (!_errors.TryGetValue(key, out var list))
             _errors[key] = list = new List<string>();
-        
+
         list.Add(message);
     }
 
