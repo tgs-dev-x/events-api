@@ -17,4 +17,8 @@ public record EventSaveDto
 
     [Required(ErrorMessage = "EndAt обязателен")]
     public DateTime? EndAt { get; init; }
+
+    [Required(ErrorMessage = "TotalSeats обязателен")]
+    public int? TotalSeats { get; init; }
+
 }

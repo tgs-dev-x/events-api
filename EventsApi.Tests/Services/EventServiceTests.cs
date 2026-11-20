@@ -16,6 +16,7 @@ public class EventServiceTests
     private static readonly Guid DefaultGuid = new("11111111-2222-3333-4444-555555555555");
     private static readonly DateTime DefaultStart = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime DefaultEnd = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+    private const int DefaultTotalSeats = 10;
 
     private readonly IEventRepository _repository = Substitute.For<IEventRepository>();
     private readonly EventService _service;
@@ -24,7 +25,8 @@ public class EventServiceTests
     {
         _service = new EventService(new EventMapper(),
             _repository,
-            new DataAnnotationsModelValidator());
+            new DataAnnotationsModelValidator(),
+            new BookingSynchronization());
     }
 
     [Fact]
@@ -259,18 +261,22 @@ public class EventServiceTests
     {
         Title = title,
         StartAt = DefaultStart,
-        EndAt = DefaultEnd
+        EndAt = DefaultEnd,
+        TotalSeats = DefaultTotalSeats
     };
 
     private static Event GetStoredEvent(
         Guid? id = null,
         string title = "Концерт",
         DateTime? startAt = null,
-        DateTime? endAt = null) => new()
+        DateTime? endAt = null) => new
+        (
+            title,
+            startAt ?? DefaultStart,
+            endAt ?? DefaultEnd,
+            DefaultTotalSeats
+        )
         {
             Id = id ?? DefaultGuid,
-            Title = title,
-            StartAt = startAt ?? DefaultStart,
-            EndAt = endAt ?? DefaultEnd
         };
 }
