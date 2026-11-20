@@ -15,6 +15,7 @@ public class BookingServiceTests
     private static readonly DateTime DefaultProcessedAt = new(2026, 6, 1, 10, 0, 2, DateTimeKind.Utc);
     private static readonly DateTime DefaultStart = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime DefaultEnd = new(2026, 6, 1, 14, 0, 0, DateTimeKind.Utc);
+    private const int DefaultTotalSeats = 10;
 
     private readonly IBookingRepository _bookingRepository = Substitute.For<IBookingRepository>();
     private readonly IEventRepository _eventRepository = Substitute.For<IEventRepository>();
@@ -24,7 +25,8 @@ public class BookingServiceTests
     {
         _service = new BookingService(_bookingRepository,
             _eventRepository,
-            new BookingMapper());
+            new BookingMapper(),
+            new BookingSynchronization());
     }
 
     [Fact]
@@ -121,17 +123,117 @@ public class BookingServiceTests
         await act.Should().ThrowAsync<NotFoundException>();
     }
 
+    [Fact]
+    public async Task CreateBookingAsync_AvailableSeats_DecreasesSeatsAndSavesEvent()
+    {
+        var eventData = GetStoredEvent(totalSeats: 3);
+        ConfigureEventStorage(eventData);
+
+        var result = await _service.CreateBookingAsync(eventData.Id);
+
+        result.EventId.Should().Be(eventData.Id);
+        result.Status.Should().Be(BookingStatus.Pending);
+
+        _eventRepository.Received(1).Update(
+            eventData.Id,
+            Arg.Is<Event>(e => e.AvailableSeats == 2));
+
+        _bookingRepository.Received(1).Add(
+            Arg.Is<Booking>(b =>
+                b.Id == result.Id &&
+                b.EventId == eventData.Id));
+    }
+
+    [Fact]
+    public async Task CreateBookingAsync_NoSeats_ThrowsAndDoesNotSaveExtraBooking()
+    {
+        var eventData = GetStoredEvent(totalSeats: 1);
+        ConfigureEventStorage(eventData);
+        await _service.CreateBookingAsync(eventData.Id);
+
+        Func<Task> act = () => _service.CreateBookingAsync(eventData.Id);
+
+        await act.Should().ThrowAsync<NoAvailableSeatsException>();
+
+        _bookingRepository.Received(1).Add(Arg.Any<Booking>());
+        _eventRepository.Received(1).Update(
+            eventData.Id, Arg.Any<Event>());
+
+        _eventRepository.FindById(eventData.Id)!
+            .AvailableSeats.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(5, 20, 5, 15)]
+    [InlineData(10, 10, 10, 0)]
+    public async Task CreateBookingAsync_ConcurrentRequests_RespectsCapacity(
+        int totalSeats,
+        int requestCount,
+        int expectedSuccesses,
+        int expectedFailures)
+    {
+        var eventData = GetStoredEvent(totalSeats: totalSeats);
+        ConfigureEventStorage(eventData);
+
+        var start = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, requestCount)
+            .Select(_ => Task.Run(async () =>
+            {
+                await start.Task;
+
+                try
+                {
+                    var booking = await _service.CreateBookingAsync(eventData.Id);
+                    return (Guid?)booking.Id;
+                }
+                catch (NoAvailableSeatsException)
+                {
+                    return (Guid?)null;
+                }
+            }))
+            .ToArray();
+
+        start.SetResult(true);
+        var results = await Task.WhenAll(tasks);
+
+        var successfulIds = results
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
+
+        successfulIds.Should().HaveCount(expectedSuccesses)
+            .And.OnlyHaveUniqueItems()
+            .And.NotContain(Guid.Empty);
+
+        results.Count(id => !id.HasValue)
+            .Should().Be(expectedFailures);
+
+        _bookingRepository.Received(expectedSuccesses)
+            .Add(Arg.Any<Booking>());
+
+        _eventRepository.Received(expectedSuccesses)
+            .Update(eventData.Id, Arg.Any<Event>());
+
+        _eventRepository.FindById(eventData.Id)!
+            .AvailableSeats.Should().Be(totalSeats - expectedSuccesses);
+    }
 
     private static Event GetStoredEvent(
         Guid? id = null,
         string title = "Концерт",
         DateTime? startAt = null,
-        DateTime? endAt = null) => new()
+        DateTime? endAt = null,
+        int totalSeats = DefaultTotalSeats) => new
+        (
+            title,
+            startAt ?? DefaultStart,
+            endAt ?? DefaultEnd,
+            totalSeats
+        )
         {
-            Id = id ?? DefaultEventId,
-            Title = title,
-            StartAt = startAt ?? DefaultStart,
-            EndAt = endAt ?? DefaultEnd
+            Id = id ?? DefaultEventId
         };
 
     private static Booking GetStoredBooking(
@@ -153,5 +255,21 @@ public class BookingServiceTests
         }
 
         return booking;
+    }
+
+    private void ConfigureEventStorage(Event initialEvent)
+    {
+        var stored = initialEvent.Clone();
+
+        _eventRepository.FindById(initialEvent.Id)
+            .Returns(_ => stored.Clone());
+
+        _eventRepository
+            .When(repository => repository.Update(
+                initialEvent.Id, Arg.Any<Event>()))
+            .Do(call => stored = call.ArgAt<Event>(1).Clone());
+
+        _bookingRepository.Add(Arg.Any<Booking>())
+            .Returns(call => call.Arg<Booking>().Clone());
     }
 }
