@@ -16,11 +16,14 @@ public class EventService : IEventService
     private readonly IEventRepository _eventRepository;
     private readonly IModelValidator _modelValidator;
 
-    public EventService(EventMapper eventMapper, IEventRepository eventRepository, IModelValidator modelValidator)
+    private readonly BookingSynchronization _synchronization;
+
+    public EventService(EventMapper eventMapper, IEventRepository eventRepository, IModelValidator modelValidator, BookingSynchronization synchronization)
     {
         _eventMapper = eventMapper;
         _eventRepository = eventRepository;
         _modelValidator = modelValidator;
+        _synchronization = synchronization;
     }
 
     public EventDto Create(EventSaveDto? saveDto)
@@ -35,8 +38,16 @@ public class EventService : IEventService
 
     public void Delete(Guid id)
     {
-        if (!_eventRepository.Delete(id))
-            throw new NotFoundException(nameof(Event), id);
+        _synchronization.Gate.Wait();
+        try
+        {
+            if (!_eventRepository.Delete(id))
+                throw new NotFoundException(nameof(Event), id);
+        }
+        finally
+        {
+            _synchronization.Gate.Release();
+        }
     }
 
     public PaginatedResult<EventDto> GetByFilter(EventSearchCriteria criteria,
@@ -71,19 +82,38 @@ public class EventService : IEventService
     {
         ValidateSaveDtoOrThrow(saveDto);
 
-        var model = _eventRepository.FindById(id)
-            ?? throw new NotFoundException(nameof(Event), id);
+        _synchronization.Gate.Wait();
+        try
+        {
+            var model = _eventRepository.FindById(id)
+                ?? throw new NotFoundException(nameof(Event), id);
 
-        _eventMapper.SaveDtoToModel(saveDto, model);
-        _eventRepository.Update(id, model);
+            model.ChangeTotalSeats(saveDto!.TotalSeats!.Value);
+            _eventMapper.SaveDtoToModel(saveDto, model);
+            _eventRepository.Update(id, model);
+        }
+        finally
+        {
+            _synchronization.Gate.Release();
+        }
     }
 
     private void ValidateSaveDtoOrThrow(EventSaveDto? saveDto)
     {
         var errors = _modelValidator.Validate(saveDto);
 
-        if (saveDto is not null && saveDto.EndAt <= saveDto.StartAt)
-            errors.AddError(nameof(EventSaveDto.EndAt), $"{nameof(EventSaveDto.EndAt)} должен быть позже {nameof(EventSaveDto.StartAt)}");
+        if (saveDto is not null)
+        {
+            if (saveDto.EndAt <= saveDto.StartAt)
+                errors.AddError(
+                    nameof(EventSaveDto.EndAt),
+                    $"{nameof(EventSaveDto.EndAt)} должен быть позже {nameof(EventSaveDto.StartAt)}");
+
+            if (saveDto.TotalSeats <= 0)
+                errors.AddError(
+                    nameof(EventSaveDto.TotalSeats),
+                    $"{nameof(EventSaveDto.TotalSeats)} должен быть больше 1");
+        }
 
         if (errors.HasErrors)
             throw new DataValidationException(errors);

@@ -12,6 +12,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddHostedService<BookingProcessingBackgroundService>();
 
+        services.AddSingleton<BookingSynchronization>();
+
         services.AddSingleton<EventMapper>();
         services.AddSingleton<BookingMapper>();
 
