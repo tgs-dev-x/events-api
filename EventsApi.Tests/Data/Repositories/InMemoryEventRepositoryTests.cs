@@ -10,6 +10,7 @@ public class InMemoryEventRepositoryTests
 {
     private static readonly DateTime DefaultStart = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime DefaultEnd = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+    private const int DefaultTotalSeats = 10;
 
     private readonly InMemoryEventRepository _repository = new();
 
@@ -70,18 +71,22 @@ public class InMemoryEventRepositoryTests
         var stored = SeedDefault("Old");
         var newStart = DefaultStart.AddDays(1);
         var newEnd = DefaultEnd.AddDays(1);
+        var newTotalSeats = DefaultTotalSeats + 1;
 
         _repository.Update(stored.Id, new Event
-        {
-            Title = newTitle,
-            StartAt = newStart,
-            EndAt = newEnd
-        });
+        (
+            newTitle,
+            newStart,
+            newEnd,
+            newTotalSeats
+
+        ));
 
         var updated = _repository.FindById(stored.Id);
         updated!.Title.Should().Be(newTitle);
         updated.StartAt.Should().Be(newStart);
         updated.EndAt.Should().Be(newEnd);
+        updated.TotalSeats.Should().Be(newTotalSeats);
     }
 
     [Fact]
@@ -90,11 +95,15 @@ public class InMemoryEventRepositoryTests
         var stored = SeedDefault("Old");
 
         _repository.Update(stored.Id, new Event
+        (
+
+            "New",
+            DefaultStart,
+            DefaultEnd,
+            DefaultTotalSeats
+        )
         {
-            Id = Guid.NewGuid(),
-            Title = "New",
-            StartAt = DefaultStart,
-            EndAt = DefaultEnd
+            Id = Guid.NewGuid()
         });
 
         var updated = _repository.FindById(stored.Id);
@@ -106,11 +115,12 @@ public class InMemoryEventRepositoryTests
     {
         var notExistingId = Guid.NewGuid();
         var act = () => _repository.Update(notExistingId, new Event
-        {
-            Title = "X",
-            StartAt = DefaultStart,
-            EndAt = DefaultEnd
-        });
+        (
+             "X",
+            DefaultStart,
+            DefaultEnd,
+            DefaultTotalSeats
+        ));
 
         act.Should().NotThrow();
         _repository.FindById(notExistingId).Should().BeNull();
@@ -312,10 +322,10 @@ public class InMemoryEventRepositoryTests
         result.Items.Should().HaveCount(5);
     }
 
-    private Event Seed(string title, DateTime start, DateTime end) =>
-        _repository.Add(new Event { Title = title, StartAt = start, EndAt = end });
+    private Event Seed(string title, DateTime start, DateTime end, int totalSeats = DefaultTotalSeats) =>
+        _repository.Add(new Event(title, start, end, totalSeats));
 
-    private Event SeedDefault(string title) => Seed(title, DefaultStart, DefaultEnd);
+    private Event SeedDefault(string title) => Seed(title, DefaultStart, DefaultEnd, DefaultTotalSeats);
 
     private PaginatedResult<Event> Find(EventSearchCriteria? criteria = null,
         IReadOnlyList<SortOrder<EventSortField>>? sorts = null,

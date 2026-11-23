@@ -1,3 +1,11 @@
 ﻿namespace EventsApi.Dtos;
 
-public record EventDto(Guid Id, string Title, string? Description, DateTime StartAt, DateTime EndAt);
+public record EventDto(
+    Guid Id,
+    string Title,
+    string?
+    Description,
+    DateTime StartAt,
+    DateTime EndAt,
+    int TotalSeats,
+    int AvailableSeats);
