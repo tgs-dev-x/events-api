@@ -22,23 +22,22 @@ public class BookingService : IBookingService
         _synchronization = synchronization;
     }
 
-    public Task<BookingDto> CreateBookingAsync(Guid eventId)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId)
     {
-        _synchronization.Gate.Wait();
+        await _synchronization.Gate.WaitAsync();
         try
         {
             var currentEvent = _eventRepository.FindById(eventId)
                 ?? throw new NotFoundException(nameof(Event), eventId);
 
             if (!currentEvent.TryReserveSeats())
-                throw new NoAvailableSeatsException($"Нет свободных мест для события {currentEvent.Id}");
+                throw new NoAvailableSeatsException("No available seats for this event");
 
             var pending = Booking.CreatePending(eventId, DateTime.UtcNow);
             var saved = _bookingRepository.Add(pending);
             _eventRepository.Update(eventId, currentEvent);
 
-            var dto = _bookingMapper.ToDto(saved);
-            return Task.FromResult(dto);
+            return _bookingMapper.ToDto(saved);
         }
         finally
         {

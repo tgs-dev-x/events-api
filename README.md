@@ -325,9 +325,9 @@ GET /events?sort=Title:asc&sort=StartAt:desc
 
 ```json
 {
-  "title": "Нет свободных мест",
+  "title": "No available seats for this event",
   "status": 409,
-  "detail": "Нет свободных мест для события fc65fd3a-b6a5-4272-965a-1323b2ef0cf4",
+  "detail": "No available seats for this event",
   "instance": "/events/fc65fd3a-b6a5-4272-965a-1323b2ef0cf4/book"
 }
 ```

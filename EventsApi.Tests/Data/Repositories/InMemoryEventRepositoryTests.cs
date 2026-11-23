@@ -96,7 +96,7 @@ public class InMemoryEventRepositoryTests
 
         _repository.Update(stored.Id, new Event
         (
-            
+
             "New",
             DefaultStart,
             DefaultEnd,
@@ -323,7 +323,7 @@ public class InMemoryEventRepositoryTests
     }
 
     private Event Seed(string title, DateTime start, DateTime end, int totalSeats = DefaultTotalSeats) =>
-        _repository.Add(new Event (title, start, end, totalSeats));
+        _repository.Add(new Event(title, start, end, totalSeats));
 
     private Event SeedDefault(string title) => Seed(title, DefaultStart, DefaultEnd, DefaultTotalSeats);
 

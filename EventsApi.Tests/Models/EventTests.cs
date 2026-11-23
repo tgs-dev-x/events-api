@@ -5,9 +5,9 @@ namespace EventsApi.Tests.Models;
 
 public class EventTests
 {
-    private static readonly DateTime DefaultStart =new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime DefaultStart = new(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
 
-    private static readonly DateTime DefaultEnd =new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime DefaultEnd = new(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
 
     [Fact]
     public void Constructor_ValidTotalSeats_AllSeatsAvailable()

@@ -220,6 +220,74 @@ public class BookingServiceTests
             .AvailableSeats.Should().Be(totalSeats - expectedSuccesses);
     }
 
+    [Fact]
+    public async Task CreateBookingAsync_ReleaseSeats_AfterBookingRejected_RestoresAvailableSeats()
+    {
+        var eventData = GetStoredEvent(totalSeats: 1);
+        ConfigureEventStorage(eventData);
+
+        Booking? createdBooking = null;
+        _bookingRepository.Add(Arg.Any<Booking>())
+            .Returns(call =>
+            {
+                createdBooking = call.Arg<Booking>().Clone();
+                return createdBooking.Clone();
+            });
+
+        await _service.CreateBookingAsync(eventData.Id);
+
+        _eventRepository.FindById(eventData.Id)!
+            .AvailableSeats.Should().Be(0);
+
+        createdBooking!.Reject(DefaultProcessedAt);
+
+        var currentEvent = _eventRepository.FindById(eventData.Id)!;
+        currentEvent.ReleaseSeats();
+        _eventRepository.Update(currentEvent.Id, currentEvent);
+
+        _eventRepository.FindById(eventData.Id)!
+            .AvailableSeats.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CreateBookingAsync_AfterRejectAndReleaseSeats_Succeeds()
+    {
+        var eventData = GetStoredEvent(totalSeats: 1);
+        ConfigureEventStorage(eventData);
+
+        Booking? createdBooking = null;
+        _bookingRepository.Add(Arg.Any<Booking>())
+            .Returns(call =>
+            {
+                createdBooking = call.Arg<Booking>().Clone();
+                return createdBooking.Clone();
+            });
+
+        var first = await _service.CreateBookingAsync(eventData.Id);
+
+        Func<Task> bookWhenFull =
+            () => _service.CreateBookingAsync(eventData.Id);
+
+        await bookWhenFull.Should()
+            .ThrowAsync<NoAvailableSeatsException>();
+
+        createdBooking!.Reject(DefaultProcessedAt);
+
+        var currentEvent = _eventRepository.FindById(eventData.Id)!;
+        currentEvent.ReleaseSeats();
+        _eventRepository.Update(currentEvent.Id, currentEvent);
+
+        var second = await _service.CreateBookingAsync(eventData.Id);
+
+        second.Id.Should().NotBeEmpty().And.NotBe(first.Id);
+        second.EventId.Should().Be(eventData.Id);
+        second.Status.Should().Be(BookingStatus.Pending);
+        second.ProcessedAt.Should().BeNull();
+
+        _eventRepository.FindById(eventData.Id)!
+            .AvailableSeats.Should().Be(0);
+    }
+
     private static Event GetStoredEvent(
         Guid? id = null,
         string title = "Концерт",

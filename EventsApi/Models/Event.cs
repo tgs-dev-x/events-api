@@ -29,7 +29,7 @@ public class Event
 
     public bool TryReserveSeats(int count = 1)
     {
-        if (count < 0)
+        if (count <= 0)
             return false;
 
         if (AvailableSeats <= 0)
@@ -44,8 +44,11 @@ public class Event
 
     public void ReleaseSeats(int count = 1)
     {
-        if (count < 0)
-            throw new ArgumentException("Количество должно быть больше 0");
+        if (count <= 0)
+            throw new DataValidationException("Количество должно быть больше 0");
+
+        if (count > TotalSeats - AvailableSeats)
+            throw new DataValidationException("Количество мест не должно превышать текущее количество занятых мест");
 
         AvailableSeats += count;
     }

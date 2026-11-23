@@ -112,7 +112,7 @@ public class EventService : IEventService
             if (saveDto.TotalSeats <= 0)
                 errors.AddError(
                     nameof(EventSaveDto.TotalSeats),
-                    $"{nameof(EventSaveDto.TotalSeats)} должен быть больше 1");
+                    $"{nameof(EventSaveDto.TotalSeats)} должен быть больше 0");
         }
 
         if (errors.HasErrors)

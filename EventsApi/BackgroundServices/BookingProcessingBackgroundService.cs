@@ -1,5 +1,6 @@
 ﻿using EventsApi.Data.Repositories;
 using EventsApi.Models;
+using EventsApi.Models.Enums;
 using EventsApi.Services;
 
 namespace EventsApi.BackgroundServices;
@@ -70,6 +71,8 @@ public class BookingProcessingBackgroundService : BackgroundService
 
     private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
     {
+        _logger.LogInformation("Starting process booking with id: {id}", booking.Id);
+
         await Task.Delay(ProcessingDelay, stoppingToken);
         await _synchronization.Gate.WaitAsync(stoppingToken);
 
@@ -94,18 +97,24 @@ public class BookingProcessingBackgroundService : BackgroundService
         {
             _logger.LogError(ex, "Failed to process booking {BookingId}", booking.Id);
 
-            booking.Reject(DateTime.UtcNow);
+            var storedBooking = _bookingRepository.FindById(booking.Id);
 
-            var eventData = _eventRepository.FindById(booking.EventId);
+            if (storedBooking is null ||
+                storedBooking.Status != BookingStatus.Pending)
+            {
+                return;
+            }
+
+            storedBooking.Reject(DateTime.UtcNow);
+            _bookingRepository.Update(storedBooking.Id, storedBooking);
+
+            var eventData = _eventRepository.FindById(storedBooking.EventId);
 
             if (eventData is not null)
             {
                 eventData.ReleaseSeats();
                 _eventRepository.Update(eventData.Id, eventData);
             }
-
-            _bookingRepository.Update(booking.Id, booking);
-            return;
         }
         finally
         {
